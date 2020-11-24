@@ -118,11 +118,14 @@ public class ConsoleUserSession implements ISession{
         displayUserMainMenu();
         do {
             try {
+                //A bookmark to get system to go back to
                 _terminal.resetToBookmark("user");
+                //displays main menu
                 displayUserMainMenu();
                 choice = _textIO.newIntInputReader()
                         .withMinVal(1).withMaxVal(8)
                         .read("Enter your choice: ");
+                //Go back to bookmark named "user"
                 _terminal.resetToBookmark("user");
                 switch (choice) {
                     case 1 -> addCourseMenu();
@@ -150,6 +153,7 @@ public class ConsoleUserSession implements ISession{
         _terminal.println("add course");
         printRegisteredCourses();
         try {
+            //Access course data and store all enrolled matric numbers in an array list
             IReadCourseDataAccessObject courseDataAccessObject = Factory.getTextCourseDataAccessObject(this);
             List<String> coursesString = courseDataAccessObject.getAllCourseCodes();
             Set<String> coursesRegistered = _user.getRegisteredCourses().keySet();
@@ -162,17 +166,18 @@ public class ConsoleUserSession implements ISession{
                 _terminal.println("no available courses to register");
                 return;
             }
+            //Prompt user to enter selection to choose the course he/she wants to add and reads it afterwards
             String courseCodeInput = _textIO.newStringInputReader()
                     .withNumberedPossibleValues(coursesString)
                     .read("Enter course code: ");
             Course course = courseDataAccessObject.getCourse(courseCodeInput);
-
+            //If user have already registered for the course, print the following message
             if (allRegisteredCourses.contains(courseCodeInput)) {
                 _terminal.getProperties().setPromptColor("red");
                 _terminal.println("course already registered");
                 return;
             }
-
+            //Prompt user to enter selection to choose the index he/she wants to add and reads it afterwards
             String indexInputStr = _textIO.newStringInputReader()
                     .withNumberedPossibleValues(course.getListOfIndexNumbers())
                     .read("Enter index: ");
@@ -229,6 +234,7 @@ public class ConsoleUserSession implements ISession{
             TreeMap<String, Integer> waitList = _user.getWaitingListCourses();
             List<String> allCoursesStr = new ArrayList<>(registered.keySet());
             allCoursesStr.addAll(waitList.keySet());
+            //If no courses registered, print the following message
             if (allCoursesStr.size() == 0) {
                 _terminal.getProperties().setPromptColor("red");
                 _terminal.println("no course to drop");
@@ -334,6 +340,7 @@ public class ConsoleUserSession implements ISession{
             int vacancies = course.checkVacancies(Integer.parseInt(indexNum));
             _terminal.getProperties().setPromptColor(Color.GREEN);
             _terminal.println("Successfully retrieved vacancies");
+            //Print appropriate messages for each of the following cases
             if (vacancies <= 0) {
                 _terminal.getProperties().setPromptColor("red");
                 _terminal.printf("There is 0/%d vacancy for %s of %s\n",
@@ -383,6 +390,7 @@ public class ConsoleUserSession implements ISession{
         try {
             _user = Factory.getTextUserDataAccessObject(this).getStudent(_user.getMatricNumber());
             TreeMap<String, Integer> registered = _user.getRegisteredCourses();
+            //if no registered courses, print the error message
             List<String> registeredCoursesStr = new ArrayList<>(registered.keySet());
             if (registeredCoursesStr.size() == 0) {
                 _terminal.getProperties().setPromptColor("red");
@@ -402,6 +410,7 @@ public class ConsoleUserSession implements ISession{
                     .withNumberedPossibleValues(indexesStr)
                     .read("Select index to swap to: ");
             int newIndexNumber = Integer.parseInt(indexNumberInput);
+            //Print following message if current index number is the same as new index number
             if (newIndexNumber == currIndexNumber) {
                 _terminal.getProperties().setPromptColor("red");
                 _terminal.println("You are already in the index.");
@@ -417,6 +426,7 @@ public class ConsoleUserSession implements ISession{
             ArrayList<String> allRegisteredCourses = new ArrayList<>();
             allRegisteredCourses.addAll(registeredCourses);
             allRegisteredCourses.addAll(waitlist);
+            //Checks if user had registered for the course
             for (String registeredCourseCode : allRegisteredCourses) {
                 if (registeredCourseCode.equals(courseCodeInput)) {
                     continue;
@@ -424,7 +434,7 @@ public class ConsoleUserSession implements ISession{
                 int registeredCourseIndexNumber = _user.getRegisteredCourses().get(registeredCourseCode);
                 Course registeredCourse = courseDataAccessObject.getCourse(registeredCourseCode);
                 Index registeredIndex = registeredCourse.getIndex(registeredCourseIndexNumber);
-
+                //Check if there is a clash of schedule of new index and user current schedule
                 if (registeredCourse.isClashing(course) || registeredCourse.isClashing(index) ||
                         registeredIndex.isClashing(index)) {
                     _terminal.getProperties().setPromptColor("red");
@@ -477,6 +487,8 @@ public class ConsoleUserSession implements ISession{
     private void swapIndexWithPeerMenu() {
         int currIndexNumber;
         String courseCodeInput;
+
+        //get student's registered courses first, checks if any course has been registered first
         try {
             _user = Factory.getTextUserDataAccessObject(this).getStudent(_user.getMatricNumber());
             TreeMap<String, Integer> registered = _user.getRegisteredCourses();
@@ -502,6 +514,7 @@ public class ConsoleUserSession implements ISession{
             _terminal.getProperties().setPromptColor("white");
         }
 
+        //peer logs in for swapping
         AbstractUser absPeer = null;
         _terminal.setBookmark("Enter peer username:");
         do {
@@ -522,12 +535,13 @@ public class ConsoleUserSession implements ISession{
                     //downcast peer from AbstractUser to Student
                     Student studentPeer = (Student) absPeer;
                     //change to auto fetch peer old index.
-                    if (studentPeer == _user) {
+                    if (studentPeer == _user) { //peer is same as current student
                         _terminal.resetToBookmark("Enter peer username:");
                         _terminal.getProperties().setPromptColor("red");
                         _terminal.println("you cant swap index with yourself");
                         break;
                     }
+                    //check if peer is registered for the selected course
                     boolean containsKey = studentPeer.getRegisteredCourses().containsKey(courseCodeInput);
                     if (!containsKey) {
                         _terminal.getProperties().setPromptColor("red");
@@ -555,6 +569,8 @@ public class ConsoleUserSession implements ISession{
                         ArrayList<String> userAllRegisteredCourses = new ArrayList<>();
                         userAllRegisteredCourses.addAll(userRegisteredCourses);
                         userAllRegisteredCourses.addAll(userWaitlist);
+
+                        //iterates through registered courses to check for any clashing
                         for (String registeredCourseCode : userAllRegisteredCourses) {
                             if (registeredCourseCode.equals(courseCodeInput)) {
                                 continue;
@@ -563,6 +579,7 @@ public class ConsoleUserSession implements ISession{
                             Course registeredCourse = courseDataAccessObject.getCourse(registeredCourseCode);
                             Index registeredIndex = registeredCourse.getIndex(registeredCourseIndexNumber);
 
+                            //incoming index clashes with current timetable
                             if (registeredCourse.isClashing(course) || registeredCourse.isClashing(peerIndex) ||
                                     registeredIndex.isClashing(peerIndex)) {
                                 _terminal.getProperties().setPromptColor("red");
@@ -578,6 +595,8 @@ public class ConsoleUserSession implements ISession{
                             ArrayList<String> peerAllRegisteredCourses = new ArrayList<>();
                             peerAllRegisteredCourses.addAll(peerRegisteredCourses);
                             peerAllRegisteredCourses.addAll(peerWaitlist);
+
+                            //iterates through registered courses to check for any clashing
                             for (String registeredCourseCode : peerAllRegisteredCourses) {
                                 if (registeredCourseCode.equals(courseCodeInput)) {
                                     continue;
@@ -586,6 +605,7 @@ public class ConsoleUserSession implements ISession{
                                 Course peeRegisteredCourse = courseDataAccessObject.getCourse(registeredCourseCode);
                                 Index peerRegisteredIndex = peeRegisteredCourse.getIndex(peerRegisteredCourseIndexNumber);
 
+                              //outgoing index clashes with peer's current timetable
                                 if (peeRegisteredCourse.isClashing(course) || peeRegisteredCourse.isClashing(currIndex) ||
                                         peerRegisteredIndex.isClashing(currIndex)) {
                                     _terminal.getProperties().setPromptColor("red");
@@ -597,6 +617,7 @@ public class ConsoleUserSession implements ISession{
                             }
                         }
 
+                        //swapping is performed by deleting and adding registrations for user and peer
                         if (!clashingTimeTable) {
                             StudentCourseRegistrar studentCourseRegistrar = Factory.createStudentCourseRegistrar();
                             //drop course for peer
@@ -643,7 +664,8 @@ public class ConsoleUserSession implements ISession{
      * if registration period has not started/already ended.
      */
     private void displayUserMainMenu() {
-        try {
+        //checks if called session is within access period, displays message that functionalities are restricted outside the period
+    	try {
             RegistrationPeriod registrationPeriod = Factory.getTextRegistrationDataAccessObject(this).getRegistrationPeriod();
             withinRegistrationPeriod = !registrationPeriod.notWithinRegistrationPeriod();
             if (!withinRegistrationPeriod) {

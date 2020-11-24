@@ -113,6 +113,7 @@ public class ConsoleAdminSession implements ISession {
         _terminal.getProperties().setPromptBold(true);
         _terminal.resetToBookmark("clear");
         _terminal.println(admin);
+        //allows user to escape from a function at any given time by pressing alt Z
         if (registeredAbort) {
             _terminal.println("--------------------------------------------------------------------------------");
             _terminal.println("Press " + keyStrokeAbort + " to go abort your current action");
@@ -122,6 +123,9 @@ public class ConsoleAdminSession implements ISession {
         _terminal.setBookmark("admin");
         _terminal.println(adminOptions);
         _terminal.println("\t\twelcome " + _user.getName());
+
+        //displays menu options and directs users to a selected functionality
+        //users directed back to menu once the functionality has been completed
         do {
             try {
                 _terminal.resetToBookmark("admin");
@@ -137,7 +141,6 @@ public class ConsoleAdminSession implements ISession {
                     case 3 -> addUpdateDropCourseMenu();
                     case 4 -> checkIndexVacanciesMenu();
                     case 5 -> printStudentListByIndexMenu();
-
                     case 6 -> printStudentListByCourseMenu();
                     case 7 -> {
                         loginAsStudentMenu();
@@ -174,6 +177,8 @@ public class ConsoleAdminSession implements ISession {
         LocalDateTime startDate, endDate;
         _terminal.println("update registration period");
         _terminal.setBookmark("update registration period home screen");
+
+        //prompts user to re-input start and end dates so long as the inputs are invalid
         do {
             String startDateStr;
             _terminal.setBookmark("start date");
@@ -204,6 +209,7 @@ public class ConsoleAdminSession implements ISession {
             } while (!validDateTime);
             endDate = LocalDateTime.parse(endDateStr, format);
 
+            //validates that start date occurs before end date
             validDateTime = startDate.compareTo(endDate) < 0;
             if (startDate.compareTo(endDate) > 0) {
                 _terminal.resetToBookmark("update registration period home screen");
@@ -218,6 +224,8 @@ public class ConsoleAdminSession implements ISession {
             }
         } while (!validDateTime);
         RegistrationPeriod newRP = Factory.createRegistrationPeriod(startDate, endDate);
+
+        //prompts admin user to ask if he/she wishes to inform students about the changes in registration period
         try {
             IReadWriteRegistrationDataAccessObject registrationDataAccessObject =
                     Factory.getTextRegistrationDataAccessObject(this);
@@ -226,6 +234,8 @@ public class ConsoleAdminSession implements ISession {
             _terminal.println("successfully changed access period");
             boolean email = _textIO.newBooleanInputReader().
                     read("Do you want to inform all students by emailing them?");
+
+            //if admin user wishes to email students, students' emails are added to the list of recipients
             if (email) {
                 IReadWriteUserDataAccessObject userDataAccessObject = Factory.getTextUserDataAccessObject(this);
                 List<String> allMatricNumbers = userDataAccessObject.getAllStudentMatricNumbers();
@@ -280,6 +290,8 @@ public class ConsoleAdminSession implements ISession {
         boolean validName;
         _terminal.println("add student");
         _terminal.setBookmark("add student home screen");
+        //continues prompting user to re-input student name so long as it has
+        //less than 3 characters or contains numbers
         do {
             _terminal.setBookmark("student name");
             name = _textIO.newStringInputReader().withMinLength(3).read("name: ");
@@ -292,10 +304,13 @@ public class ConsoleAdminSession implements ISession {
             }
         } while (!validName);
 
+        //Prompts user to select the student's gender, nationality and school
         Gender gender = _textIO.newEnumInputReader(Gender.class).read("Gender: ");
         Nationality nationality = _textIO.newEnumInputReader(Nationality.class).read("Nationality: ");
         School school = _textIO.newEnumInputReader(School.class).read("School: ");
 
+        //prompts the user to input the max AUs so long as they give an input
+        //less than 0 and greater than 25
         int maxAUs = _textIO.newIntInputReader()
                 .withDefaultValue(21).withMinVal(0).withMaxVal(25)
                 .read("MaxAUs: (leave blank for default 21 AUs)");
@@ -344,6 +359,9 @@ public class ConsoleAdminSession implements ISession {
                     .withNumberedPossibleValues(indexString)
                     .read("select index to check vacancies for: ");
             int vacancies = course.checkVacancies(Integer.parseInt(indexNum));
+
+            //display the number of students in the waiting list (if any)
+            //and vacancies of the index group
             _terminal.getProperties().setPromptColor(Color.GREEN);
             _terminal.println("Successfully retrieved vacancies");
             if (vacancies <= 0) {
@@ -401,6 +419,8 @@ public class ConsoleAdminSession implements ISession {
 
         _terminal.println("add/update/delete course");
         _terminal.setBookmark("add/update course home page");
+
+        //prompts user to select among a list of course codes, including option to add a new course
         try {
             IReadWriteCourseDataAccessObject courseDataAccessObject = Factory.getTextCourseDataAccessObject(this);
             List<String> coursesString = courseDataAccessObject.getAllCourseCodes();
@@ -410,6 +430,7 @@ public class ConsoleAdminSession implements ISession {
                     .read("select course to add/update/delete: ");
             selectedCourse = courseDataAccessObject.getCourse(selectedCourseCode);
 
+            //selectedCourse will be null if admin user chooses to add a new course
             if (selectedCourse == null) {
                 boolean validCourseCode;
                 _terminal.setBookmark("add new course");
@@ -437,6 +458,8 @@ public class ConsoleAdminSession implements ISession {
             e.printStackTrace();
         }
 
+        //selectedCourse is null if a user selects among a course code or
+        //inputs an existing course code while trying to add a new course
         if (selectedCourse == null) {
             Hashtable<DayOfWeek, List<LocalTime>> lectureTimings = new Hashtable<>();
             DayOfWeek lectureDay;
@@ -452,13 +475,17 @@ public class ConsoleAdminSession implements ISession {
             AUs = _textIO.newIntInputReader().withMinVal(1).withMaxVal(4)
                     .read("number of AUs (1-4): ");
 
+            //prompts user to input a lecture session until they indicate that they wish
+            //to stop adding lecture sessions
             boolean contAdd;
             _terminal.println("____add a day and time period for lecture session____");
             _terminal.setBookmark("add lecture session");
             do {
                 lectureDay = _textIO.newEnumInputReader(DayOfWeek.class).
                         read("Enter lecture day: ");
-                if (lectureTimings.containsKey(lectureDay)) { //edited
+                //validates that there is no other lecture session on the same day
+                //if there is, user will be prompted to select another day
+                if (lectureTimings.containsKey(lectureDay)) {
                     _terminal.resetToBookmark("add lecture session");
                     _terminal.getProperties().setPromptColor(Color.RED);
                     _terminal.println("there is already a lecture session on " + lectureDay +
@@ -482,7 +509,9 @@ public class ConsoleAdminSession implements ISession {
             _terminal.println("course details have been recorded.");
             _terminal.getProperties().setPromptColor("white");
 
-            String newIndexGroupsubStr = selectedCourseCode.substring(2); //get the 4 digits
+            //index group number automatically generated by taking the last 4 digits of the course plus 2 extra digits
+            //index group number incremented as admin user continues adding a new index
+            String newIndexGroupsubStr = selectedCourseCode.substring(2);
             int newIndexGroup = Integer.parseInt(newIndexGroupsubStr) * 100;
             _terminal.setBookmark("add index info");
             do {
@@ -519,6 +548,7 @@ public class ConsoleAdminSession implements ISession {
         } else {
             int option;
             do {
+                //if the selected course does not have an index group, proceeds to delete course
                 if (selectedCourse.getListOfIndexNumbers().size() == 0) {
                     _terminal.getProperties().setPromptColor("red");
                     _terminal.println("course has no more index, deleting course...");
@@ -545,6 +575,7 @@ public class ConsoleAdminSession implements ISession {
                 _terminal.setBookmark("update course details");
 
                 switch (option) {
+                    //---------------Update course name
                     case 1 -> {
                         String newCourseName = _textIO.newStringInputReader()
                                 .read("enter new course name: ");
@@ -556,6 +587,7 @@ public class ConsoleAdminSession implements ISession {
                         _textIO.newStringInputReader().withDefaultValue(" ")
                                 .read("press enter to continue");
                     }
+                    //---------------Update school
                     case 2 -> {
                         school = _textIO.newEnumInputReader(School.class)
                                 .read("enter new school: ");
@@ -567,6 +599,7 @@ public class ConsoleAdminSession implements ISession {
                         _textIO.newStringInputReader().withDefaultValue(" ")
                                 .read("press enter to continue");
                     }
+                    //---------------Update lecture venue
                     case 3 -> {
                         Venue lectureVenue = _textIO.newEnumInputReader(Venue.class)
                                 .read("enter new venue for the lecture session(s): ");
@@ -578,7 +611,9 @@ public class ConsoleAdminSession implements ISession {
                         _textIO.newStringInputReader().withDefaultValue(" ").
                                 read("press enter to continue");
                     }
+                    //---------------Add/Update/Delete index group
                     case 4 -> {
+                        //prompts user to select among index groups of courses plus addition of a new index group
                         List<String> indexesString = selectedCourse.getListOfIndexNumbers();
                         indexesString.add("add new index");
                         String indexInput = _textIO.newStringInputReader()
@@ -586,6 +621,9 @@ public class ConsoleAdminSession implements ISession {
                         boolean validIndexNumber;
                         _terminal.resetToBookmark("add/update course home page");
                         _terminal.setBookmark("add new index number");
+
+                        //if user chooses to add a new index group
+                        //prompts user to re-input new index number so long as the format is invalid (not 6 digits)
                         if (!InputValidator.indexStrMatcher(indexInput)) {
                             do {
                                 _terminal.setBookmark("add new index number");
@@ -600,14 +638,18 @@ public class ConsoleAdminSession implements ISession {
                                 }
                             } while (!validIndexNumber);
                         }
+                        //calls for update of course containing latest information of index group
+                        //after user goes through addUpdateDropIndexMenu
                         selectedCourse = addUpdateDropIndexMenu(selectedCourse, Integer.parseInt(indexInput));
                         updateCourse(selectedCourse);
                     }
+                    //---------------Delete course
                     case 5 -> {
                         try {
                             IReadWriteRegistrationDataAccessObject registrationDataAccessObject =
                                     Factory.getTextRegistrationDataAccessObject(this);
                             List<String> indexNumbers = selectedCourse.getListOfIndexNumbers();
+                            //Loops through all index groups to de-register students from deleted course
                             for (Iterator<String> indexNumberIterator = indexNumbers.iterator(); indexNumberIterator.hasNext();) {
                                 String indexNumber = indexNumberIterator.next();
                                 Index index = selectedCourse.getIndex(Integer.parseInt(indexNumber));
@@ -617,6 +659,8 @@ public class ConsoleAdminSession implements ISession {
                                 allStudents.addAll(enrolledStudents);
                                 allStudents.addAll(waitingList);
 
+                                //loops through all enrolled students and students on waitlist for each index group
+                                //and de-registers them from the course index
                                 for (int i = 0; i < allStudents.size(); i++) {
                                     String student = allStudents.get(i);
                                     RegistrationKey registrationKey = Factory.createRegistrationKey(student,
@@ -630,6 +674,7 @@ public class ConsoleAdminSession implements ISession {
                                     }
                                 }
                             }
+                            //delete the course via the courseDataAccessObject
                             Factory.getTextCourseDataAccessObject(this).deleteCourse(selectedCourse);
                             _terminal.getProperties().setPromptColor(Color.green);
                             _terminal.println("Course deleted");
@@ -659,6 +704,7 @@ public class ConsoleAdminSession implements ISession {
     private Course addUpdateDropIndexMenu(Course course, int index) {
         Index existingIndex = course.getIndex(index);
         _terminal.setBookmark("add/update/delete index");
+        //Add index if it does not exist
         if (existingIndex == null) {
             _terminal.println("____add details for new index group " + index
                     + " of course " + course.getCourseCode() + "____");
@@ -705,6 +751,7 @@ public class ConsoleAdminSession implements ISession {
                     List<LocalTime> sessionTiming = getValidTimeInput("tutorial");
                     newTutorialTimings.put(sessionDay, sessionTiming);
 
+                    //Check if timing clashed with lecture timing
                     existingIndex.setTutorialTimings(newTutorialTimings);
                     if (course.isClashing(existingIndex)) {
                         existingIndex.setTutorialTimings(originalTutorialTimings);
@@ -760,6 +807,7 @@ public class ConsoleAdminSession implements ISession {
                     _terminal.getProperties().setPromptColor("white");
 
                     if (existingIndex.getLaboratoryVenue() == null) {
+                        //Set lab venue if it does not exist
                         _terminal.getProperties().setPromptColor("red");
                         _terminal.println("Laboratory timing cannot exist without venue");
                         _terminal.getProperties().setPromptColor("white");
@@ -773,6 +821,7 @@ public class ConsoleAdminSession implements ISession {
                     _textIO.newStringInputReader().withDefaultValue(" ")
                             .read("press enter to continue");
                 }
+                //---------------Add/Update tutorial venue
                 case 3 -> {
                     _terminal.println("Add/Update tutorial venue");
                     Venue tutorialVenue = _textIO.newEnumInputReader(Venue.class)
@@ -795,6 +844,7 @@ public class ConsoleAdminSession implements ISession {
                         newTutorialTimings.put(sessionDay, sessionTiming);
 
                         existingIndex.setTutorialTimings(newTutorialTimings);
+                        //Check if timing clashes with lecture
                         if (course.isClashing(existingIndex)) {
                             existingIndex.setTutorialTimings(originalTutorialTimings);
                             existingIndex.setTutorialVenue(null);
@@ -812,6 +862,7 @@ public class ConsoleAdminSession implements ISession {
                     _textIO.newStringInputReader().withDefaultValue(" ")
                             .read("press enter to continue");
                 }
+                //---------------Add/Update laboratory venue
                 case 4 -> {
                     _terminal.println("Add/Update laboratory venue");
                     Venue laboratoryVenue = _textIO.newEnumInputReader(Venue.class)
@@ -820,6 +871,7 @@ public class ConsoleAdminSession implements ISession {
                     _terminal.getProperties().setPromptColor(Color.GREEN);
                     _terminal.println("Successfully updated laboratory venue");
                     _terminal.getProperties().setPromptColor("white");
+                    //if a laboratory session has yet to be created, prompt user to input a laboratory session timing
                     if (existingIndex.getLaboratoryTimings() == null) {
                         _terminal.getProperties().setPromptColor("red");
                         _terminal.println("Laboratory venue cannot exist without timing");
@@ -834,6 +886,8 @@ public class ConsoleAdminSession implements ISession {
                         newLaboratoryTimings.put(sessionDay, sessionTiming);
 
                         existingIndex.setTutorialTimings(newLaboratoryTimings);
+                        //if the new laboratory timing clashes with a lecture timing
+                        //revert the creation of the laboratory session
                         if (course.isClashing(existingIndex)) {
                             existingIndex.setLaboratoryTimings(originalLaboratoryTimings);
                             existingIndex.setLaboratoryVenue(null);
@@ -851,9 +905,12 @@ public class ConsoleAdminSession implements ISession {
                     _textIO.newStringInputReader().withDefaultValue(" ")
                             .read("press enter to continue");
                 }
+                //---------------Update class size
                 case 5 -> {
                     int newMaxClassSize;
                     int currentMaxClassSize = existingIndex.getMaxClassSize();
+                    //prompts user to re-input a new class size so long as the input is
+                    //smaller than the original class size
                     do {
                         newMaxClassSize = _textIO.newIntInputReader()
                                 .withMinVal(1)
@@ -871,8 +928,10 @@ public class ConsoleAdminSession implements ISession {
                     _textIO.newStringInputReader().withDefaultValue(" ")
                             .read("press enter to continue");
                 }
+                //---------------Delete index group
                 case 6 -> {
                     try {
+                        //get all enrolled students and students on wait list
                         IReadWriteRegistrationDataAccessObject registrationDataAccessObject =
                                 Factory.getTextRegistrationDataAccessObject(this);
                         ArrayList<String> enrolledStudents = existingIndex.getEnrolledStudents();
@@ -881,6 +940,8 @@ public class ConsoleAdminSession implements ISession {
                         allStudents.addAll(enrolledStudents);
                         allStudents.addAll(waitingList);
 
+                        //get registration key for all students and
+                        //delete them via the registrationDataAccessObject
                         for (String student : allStudents) {
                             RegistrationKey registrationKey = Factory.createRegistrationKey(student,
                                     course.getCourseCode(), index);
@@ -927,6 +988,7 @@ public class ConsoleAdminSession implements ISession {
             Index index = course.getIndex(Integer.parseInt(indexNumber));
             _terminal.getProperties().setPromptColor(Color.GREEN);
             _terminal.println("Successfully retrieved student list");
+            //Print enrolled students of the index
             _terminal.println(getStudentListByIndexString(index));
             _terminal.println("End of Student list");
         } catch (IOException | ClassNotFoundException e) {
@@ -952,6 +1014,7 @@ public class ConsoleAdminSession implements ISession {
             _terminal.getProperties().setPromptColor(Color.GREEN);
             _terminal.println("Successfully retrieved student list");
             _terminal.println("courseCode: " + course.getCourseCode() + ",\t" + "courseName: " + course.getCourseName());
+            //Print out students enrolled in the course
             for (String indexNumber : course.getListOfIndexNumbers()) {
                 Index index = course.getIndex(Integer.parseInt(indexNumber));
                 _terminal.println(getStudentListByIndexString(index));
@@ -984,6 +1047,7 @@ public class ConsoleAdminSession implements ISession {
                     .withMinLength(6)
                     .withInputMasking(true)
                     .read("Enter Password: ");
+            //Authenticate the username and password
             AbstractUser abstractUser = Factory.getTextUserDataAccessObject(this).authenticate(username, password);
             if (abstractUser == null || abstractUser.getUserType() == UserType.ADMIN) {
                 _terminal.getProperties().setPromptColor("red");
@@ -1095,7 +1159,9 @@ public class ConsoleAdminSession implements ISession {
                 .read("enter the duration (1-" + maxDuration + ") of the " + sessionType + "(hrs): ");
         _terminal.setBookmark("start time");
         do {
+            //Prompt user to enter start time of the session and reads it
             startTime = _textIO.newStringInputReader().read("enter the start time in HH:MM (30 min interval, e.g. 16:30): ");
+            //Checks if input is valid
             proceed = InputValidator.validateTimeInput(startTime) &&
                     InputValidator.validateTimeInput(startTime, schoolStartTime, schoolEndTime, duration);
             if (!proceed) {

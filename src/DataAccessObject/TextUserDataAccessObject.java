@@ -55,11 +55,11 @@ public class TextUserDataAccessObject implements Serializable, IReadWriteUserDat
      * @throws ClassNotFoundException Class does not exist
      */
     private static void initialize() throws IOException, ClassNotFoundException {
-//        InputStream file = new FileInputStream("./data/Users.ser");
-//        InputStream buffer = new BufferedInputStream(file);
-//        ObjectInput input = new ObjectInputStream(buffer);
-//
-//        instance = (TextUserDataAccessObject) input.readObject();
+        InputStream file = new FileInputStream("./data/Users.ser");
+        InputStream buffer = new BufferedInputStream(file);
+        ObjectInput input = new ObjectInputStream(buffer);
+
+        instance = (TextUserDataAccessObject) input.readObject();
     }
 
     /**

@@ -170,7 +170,7 @@ public class Factory {
      * Refer to {@link #createStudent(String, School, Gender, Nationality, int)} for the overloaded method}.
      */
     public static Student createStudent(String name, School school, Gender gender, Nationality nationality) throws PasswordStorage.CannotPerformOperationException {
-        return new Student(name, school, gender, nationality, 23 , new Random());
+        return new Student(name, school, gender, nationality, 21 , new Random());
     }
 
     /**

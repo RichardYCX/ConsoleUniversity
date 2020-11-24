@@ -51,11 +51,11 @@ public class TextCourseDataAccessObject implements Serializable, IReadWriteCours
      * @throws ClassNotFoundException Class does not exist
      */
     private static void initialize() throws IOException, ClassNotFoundException {
-//        InputStream file = new FileInputStream("./data/Courses.ser");
-//        InputStream buffer = new BufferedInputStream(file);
-//        ObjectInput input = new ObjectInputStream(buffer);
-//
-//        instance = (TextCourseDataAccessObject) input.readObject();
+        InputStream file = new FileInputStream("./data/Courses.ser");
+        InputStream buffer = new BufferedInputStream(file);
+        ObjectInput input = new ObjectInputStream(buffer);
+
+        instance = (TextCourseDataAccessObject) input.readObject();
     }
 
     /**

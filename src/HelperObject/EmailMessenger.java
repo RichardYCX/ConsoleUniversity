@@ -59,7 +59,7 @@ public class EmailMessenger implements IMessenger {
             message.setSubject(subject);
             message.setText(text);
 
-//            Transport.send(message);
+            Transport.send(message);
             System.out.println("emails sent to " + recipientEmail);
         } catch (MessagingException e) {
             throw new RuntimeException(e);

@@ -53,28 +53,36 @@ public class StudentCourseRegistrar {
      * @throws ClashingTimeTableException index will result in clashing time table
      */
     public void addRegistration(String matricNumber, String courseCode, int indexNumber) throws IOException, ClassNotFoundException, InvalidAccessPeriodException, InsufficientAUsException, ExistingCourseException, ExistingUserException, ExistingRegistrationException, NonExistentUserException, MaxEnrolledStudentsException, ClashingTimeTableException {
-        IReadWriteUserDataAccessObject userDataAccessObject = Factory.getTextUserDataAccessObject(this);
+        //create data access objects for user, course and registration
+    	IReadWriteUserDataAccessObject userDataAccessObject = Factory.getTextUserDataAccessObject(this);
         IReadWriteCourseDataAccessObject courseDataAccessObject = Factory.getTextCourseDataAccessObject(this);
         IReadWriteRegistrationDataAccessObject registrationDataAccessObject =
                 Factory.getTextRegistrationDataAccessObject(this);
 
+        //checks if method is called during access period
         if (registrationDataAccessObject.getRegistrationPeriod().notWithinRegistrationPeriod()) {
             throw new InvalidAccessPeriodException();
         }
+
+        //initialise variables to store information relevant to registration key
         RegistrationKey registrationKey = Factory.createRegistrationKey(matricNumber, courseCode, indexNumber);
         Student student = userDataAccessObject.getStudent(matricNumber);
         Course course = courseDataAccessObject.getCourse(courseCode);
         Index index = course.getIndex(indexNumber);
 
+        //checks if new course added will exceed student's AU limit
         if (student.getMaxAUs() - student.getTotalRegisteredAUs() < course.getAUs()) {
             throw new InsufficientAUsException();
         }
 
+        //variables to store student's registered courses and waitlisted courses
         Set<String> registeredCourses = student.getRegisteredCourses().keySet();
         Set<String> waitlist = student.getWaitingListCourses().keySet();
         ArrayList<String> allRegisteredCourses = new ArrayList<>();
         allRegisteredCourses.addAll(registeredCourses);
         allRegisteredCourses.addAll(waitlist);
+
+        //checks through student's current registered courses for compatibility
         for (String registeredCourseCode : allRegisteredCourses) {
             int registeredCourseIndexNumber;
             if (student.getRegisteredCourses() == null || !student.getRegisteredCourses().containsKey(registeredCourseCode)) {
@@ -85,13 +93,14 @@ public class StudentCourseRegistrar {
             Course registeredCourse = courseDataAccessObject.getCourse(registeredCourseCode);
             Index registeredIndex = registeredCourse.getIndex(registeredCourseIndexNumber);
 
+            //checks if course being registered would clash with student's current time table
             if (registeredCourse.isClashing(course) || registeredCourse.isClashing(index) ||
                     registeredIndex.isClashing(index)) {
                 throw new ClashingTimeTableException();
             }
         }
 
-        registrationDataAccessObject.addRegistration(registrationKey);
+        registrationDataAccessObject.addRegistration(registrationKey); //successfully registers course
     }
 
     /**
@@ -138,16 +147,22 @@ public class StudentCourseRegistrar {
      * @throws ExistingUserException user already exist
      */
     public void deleteRegistration(String matricNumber, String courseCode, int indexNumber) throws IOException, ClassNotFoundException, InvalidAccessPeriodException, NonExistentRegistrationException, NonExistentUserException, NonExistentCourseException, ExistingCourseException, MaxEnrolledStudentsException, ExistingUserException {
-        IReadWriteCourseDataAccessObject courseDataAccessObject = Factory.getTextCourseDataAccessObject(this);
+        //create data access objects for course and registration
+    	IReadWriteCourseDataAccessObject courseDataAccessObject = Factory.getTextCourseDataAccessObject(this);
         IReadWriteRegistrationDataAccessObject registrationDataAccessObject =
                 Factory.getTextRegistrationDataAccessObject(this);
+
+        //checks if method is called during access period
         if (registrationDataAccessObject.getRegistrationPeriod().notWithinRegistrationPeriod()) {
             throw new InvalidAccessPeriodException();
         }
 
+        //initialise variables to store information relevant to registration key
         RegistrationKey registrationKey = Factory.createRegistrationKey(matricNumber, courseCode, indexNumber);
         Course course = courseDataAccessObject.getCourse(courseCode);
         Index index = course.getIndex(indexNumber);
+
+        //drops course even when student is in waiting list for it
         if (index.getWaitingList().contains(matricNumber)) {
             index.dropStudent(matricNumber);
             course.updateIndex(index);
@@ -158,7 +173,7 @@ public class StudentCourseRegistrar {
             student.deregisterCourse(courseCode);
             userDataAccessObject.updateStudent(student);
         } else {
-            registrationDataAccessObject.deleteRegistration(registrationKey);
+            registrationDataAccessObject.deleteRegistration(registrationKey); //successfully removes registered course
         }
     }
 }
