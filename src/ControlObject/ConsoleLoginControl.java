@@ -14,10 +14,6 @@ import java.io.IOException;
  */
 public class ConsoleLoginControl implements ILoginControl {
     /**
-     * AbstractUser object
-     */
-    private AbstractUser _user;
-    /**
      * TextIO object
      */
     private final TextIO _textIO;
@@ -46,7 +42,6 @@ public class ConsoleLoginControl implements ILoginControl {
      * @see org.beryx.textio.TextTerminal
      */
     public ConsoleLoginControl(TextIO textIO, TextTerminal terminal) {
-        _user = null;
         _textIO = textIO;
         _terminal = terminal;
         _terminal.getProperties().setPromptColor("white");
@@ -65,6 +60,7 @@ public class ConsoleLoginControl implements ILoginControl {
      */
     @Override
     public AbstractUser login() {
+        AbstractUser _user = null;
         _terminal.setBookmark("clear");
         try {
             IReadUserDataAccessObject userDataAccessObject = Factory.getTextUserDataAccessObject(this);

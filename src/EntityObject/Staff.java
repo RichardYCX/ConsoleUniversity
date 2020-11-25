@@ -21,6 +21,7 @@ public class Staff extends AbstractUser {
      * @param school An Enum value of the school
      * @param gender An Enum value representing gender of staff
      * @param nationality An Enum value of the nationality of the staff
+     * @param job job title of staff
      * @throws PasswordStorage.CannotPerformOperationException unsafe to hash password
      * @see ValueObject.School
      * @see ValueObject.Gender
