@@ -9,8 +9,8 @@ add the dependencies in the lib folder before running the app.
 
 p.s. newly added student information will be printed in the IDE console
 
-Current list of UserInformation
-username : password : email
+Current list of UserInformation\
+username : password : email\
 ADMIN/STAFF\
 richardscse0773: richard2020: richard773scse.admin@ntu.edu.sg
 
