@@ -1,6 +1,6 @@
-#STARS
+# STARS
 
-A command line based interface for all things STARS related. Can be used by both admins and students to perform role specific tasks.
+A command line based interface for all things course registration related. Can be used by both admins and students to perform role specific tasks.
 
 
 Either run the .jar file as is, or run STARSApp.java file in .src from an IDE. 
