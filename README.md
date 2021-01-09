@@ -1,15 +1,26 @@
 # STARS
 
 A command line based interface for all things course registration related. Can be used by both admins and students to perform role specific tasks.
-
+---
+## Screenshots
+### Login
+<p float="left">
+  <img src="https://github.com/RichardYCX/University-Student-Course-Registration-System/blob/master/images/login.png?raw=true" width="400"/>
+</p>
+### Dashboards
+<p float="left">
+  <img src="https://github.com/RichardYCX/University-Student-Course-Registration-System/blob/master/images/admin%20dashboard.png?raw=true" width="400"/>
+  <img src="https://github.com/RichardYCX/University-Student-Course-Registration-System/blob/master/images/student%20dashboard.png?raw=true" width="400"/>
+</p>
 
 Either run the .jar file as is, or run STARSApp.java file in .src from an IDE. 
 For best results, we suggest either using either IntelliJ or Eclipse to run the app.
 add the dependencies in the lib folder before running the app.
 
-p.s. newly added student information will be printed in the IDE console
+---
 
-Current list of UserInformation\
+**Current list of User Information**
+
 username : password : email\
 ADMIN/STAFF\
 richardscse0773: richard2020: richard773scse.admin@ntu.edu.sg
@@ -37,5 +48,6 @@ joyeee0544: joy2020: joy544eee.user@ntu.edu.sg\
 yerieee0468: yeri2020: yeri468eee.user@ntu.edu.sg\
 aespaeee0860: aespa2020: aespa860eee.user@ntu.edu.sg\
 
+>p.s. newly added student information will be printed in the IDE console
 ## Note: all user details are fictacious 
 
