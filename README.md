@@ -7,6 +7,7 @@ A command line based interface for all things course registration related. Can b
 <p float="left">
   <img src="https://github.com/RichardYCX/University-Student-Course-Registration-System/blob/master/images/login.png?raw=true" width="400"/>
 </p>
+
 ### Dashboards
 <p float="left">
   <img src="https://github.com/RichardYCX/University-Student-Course-Registration-System/blob/master/images/admin%20dashboard.png?raw=true" width="400"/>
